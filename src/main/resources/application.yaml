@@ -16,3 +16,8 @@ management:
         web:
             exposure:
                 include: health,prometheus
+
+conversation:
+    open-ttl: ${CONVERSATION_OPEN_TTL:PT24H}
+    cleanup-delay: ${CONVERSATION_CLEANUP_DELAY:PT5M}
+    cleanup-batch-size: ${CONVERSATION_CLEANUP_BATCH_SIZE:100}
