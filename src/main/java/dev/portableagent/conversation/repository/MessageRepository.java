@@ -8,18 +8,16 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@RequiredArgsConstructor
 public class MessageRepository {
 
     private final DSLContext db;
-
-    public MessageRepository(DSLContext db) {
-        this.db = db;
-    }
 
     public Optional<Message> findByRequest(UUID tenantId, String subject, String requestKey) {
         return db.selectFrom(CONVERSATION_MESSAGES)

@@ -33,6 +33,9 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
 
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
     jooqCodegen("org.jooq:jooq-meta-extensions:3.21.7")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
