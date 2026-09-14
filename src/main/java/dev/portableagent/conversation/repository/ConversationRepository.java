@@ -10,18 +10,16 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@RequiredArgsConstructor
 public class ConversationRepository {
 
     private final DSLContext db;
-
-    public ConversationRepository(DSLContext db) {
-        this.db = db;
-    }
 
     public void create(Conversation conversation) {
         db.insertInto(CONVERSATIONS)

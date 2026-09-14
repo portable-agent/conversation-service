@@ -5,7 +5,8 @@
 - Используй обычные пакеты `controller`, `service`, `repository`, `model`, `config`, `exception`.
 - Controller занимается только HTTP и вызывает один service method.
 - Service владеет оркестрацией. Repository занимается только SQL через jOOQ.
-- Не добавляй JPA, Hibernate и Lombok.
+- Не добавляй JPA и Hibernate.
+- Lombok разрешён только для constructor injection и logging. Не используй `@Data` для domain models.
 - Не сохраняй исходный текст или личные данные без принятого решения о privacy и retention.
 - Не придумывай вопросы пользователю и правила завершённости предложения.
 - Не вызывай MCP напрямую.

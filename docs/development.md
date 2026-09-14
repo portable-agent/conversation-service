@@ -10,3 +10,6 @@ Generated API создаётся задачей `openApiGenerate` в `build/gene
 
 Тесты делятся на быстрые unit, MVC slice и PostgreSQL integration через Testcontainers. H2 не
 используется.
+
+Spring-компоненты используют constructor injection. Для простых зависимостей конструктор генерирует
+Lombok `@RequiredArgsConstructor`; field injection через `@Autowired` запрещён.

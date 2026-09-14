@@ -7,49 +7,20 @@ import dev.portableagent.conversation.model.Message;
 import dev.portableagent.conversation.repository.ConversationRepository;
 import dev.portableagent.conversation.repository.MessageRepository;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class MessageService {
 
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final Clock clock;
-    private final Duration openTtl;
-    private final int cleanupBatchSize;
-
-    public MessageService(
-            ConversationRepository conversationRepository,
-            MessageRepository messageRepository,
-            Clock clock,
-            ConversationProperties properties) {
-        this(conversationRepository, messageRepository, clock, properties.openTtl(), properties.cleanupBatchSize());
-    }
-
-    MessageService(
-            ConversationRepository conversationRepository,
-            MessageRepository messageRepository,
-            Clock clock,
-            Duration openTtl) {
-        this(conversationRepository, messageRepository, clock, openTtl, 100);
-    }
-
-    private MessageService(
-            ConversationRepository conversationRepository,
-            MessageRepository messageRepository,
-            Clock clock,
-            Duration openTtl,
-            int cleanupBatchSize) {
-        this.conversationRepository = conversationRepository;
-        this.messageRepository = messageRepository;
-        this.clock = clock;
-        this.openTtl = openTtl;
-        this.cleanupBatchSize = cleanupBatchSize;
-    }
+    private final ConversationProperties properties;
 
     @Transactional
     public Message store(StoreMessageCommand command) {
@@ -98,7 +69,7 @@ public class MessageService {
     @Transactional
     public int closeExpired() {
         var now = clock.instant();
-        var expiredIds = conversationRepository.findExpired(now, cleanupBatchSize);
+        var expiredIds = conversationRepository.findExpired(now, properties.cleanupBatchSize());
         expiredIds.forEach(conversationId -> {
             messageRepository.eraseText(conversationId, now);
             conversationRepository.close(conversationId, now);
@@ -112,7 +83,7 @@ public class MessageService {
                 command.tenantId(),
                 command.subject(),
                 ConversationStatus.OPEN,
-                now.plus(openTtl),
+                now.plus(properties.openTtl()),
                 now,
                 now);
         conversationRepository.create(conversation);
