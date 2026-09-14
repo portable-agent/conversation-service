@@ -10,6 +10,8 @@ plugins {
 group = "dev.portableagent"
 version = "0.1.0-SNAPSHOT"
 
+extra["tomcat.version"] = "11.0.25"
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
