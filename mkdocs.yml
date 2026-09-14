@@ -1,0 +1,14 @@
+site_name: Conversation Service
+site_description: Документация сервиса диалогов Portable Agent
+docs_dir: docs
+strict: true
+theme:
+    name: material
+    language: ru
+nav:
+    - Главная: index.md
+    - Архитектура: architecture.md
+    - Разработка: development.md
+    - Runbook: runbook.md
+    - Решения:
+          - Граница каркаса: decisions/0001-foundation-boundary.md

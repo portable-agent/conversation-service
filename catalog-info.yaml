@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+    name: conversation-service
+    description: Состояние диалога и оркестрация сообщений Portable Agent
+    annotations:
+        github.com/project-slug: portable-agent/conversation-service
+        backstage.io/techdocs-ref: dir:.
+        portable-agent.dev/api-contract: conversation-api@2.3.0
+spec:
+    type: service
+    lifecycle: experimental
+    owner: group:default/backend
+    system: portable-agent
+    dependsOn:
+        - component:default/agent-runtime
+        - component:default/action-service

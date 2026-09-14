@@ -1,0 +1,4 @@
+* @portable-agent/maintainers
+
+/src/ @portable-agent/backend @portable-agent/maintainers
+/src/main/openapi/ @portable-agent/backend @portable-agent/maintainers
