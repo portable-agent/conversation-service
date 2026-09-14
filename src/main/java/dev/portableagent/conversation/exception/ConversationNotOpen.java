@@ -1,4 +1,4 @@
-package dev.portableagent.conversation.service;
+package dev.portableagent.conversation.exception;
 
 import java.util.UUID;
 
