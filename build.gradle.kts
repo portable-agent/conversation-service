@@ -1,6 +1,7 @@
 plugins {
     java
     jacoco
+    id("org.jooq.jooq-codegen-gradle") version "3.21.7"
     id("org.openapi.generator") version "7.24.0"
     id("com.diffplug.spotless") version "8.10.1"
     id("org.springframework.boot") version "4.1.1"
@@ -32,6 +33,8 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
 
+    jooqCodegen("org.jooq:jooq-meta-extensions:3.21.7")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
@@ -40,7 +43,41 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+jooq {
+    configuration {
+        generator {
+            database {
+                name = "org.jooq.meta.extensions.ddl.DDLDatabase"
+                includes = "conversations|conversation_messages"
+                properties {
+                    property {
+                        key = "scripts"
+                        value = "src/main/resources/db/migration/*.sql"
+                    }
+                    property {
+                        key = "sort"
+                        value = "flyway"
+                    }
+                    property {
+                        key = "defaultNameCase"
+                        value = "lower"
+                    }
+                }
+            }
+            generate {
+                isDeprecated = false
+                isRecords = true
+            }
+            target {
+                packageName = "dev.portableagent.conversation.db"
+                directory = "build/generated-src/jooq/main"
+            }
+        }
+    }
+}
+
 sourceSets.main {
+    java.srcDir("build/generated-src/jooq/main")
     java.srcDir(layout.buildDirectory.dir("generated-src/openapi/src/main/java"))
 }
 
@@ -93,7 +130,7 @@ spotless {
 }
 
 tasks.compileJava {
-    dependsOn(tasks.openApiGenerate)
+    dependsOn(tasks.jooqCodegen, tasks.openApiGenerate)
 }
 
 tasks.withType<Test> {
