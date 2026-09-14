@@ -21,3 +21,4 @@ conversation:
     open-ttl: ${CONVERSATION_OPEN_TTL:PT24H}
     cleanup-delay: ${CONVERSATION_CLEANUP_DELAY:PT5M}
     cleanup-batch-size: ${CONVERSATION_CLEANUP_BATCH_SIZE:100}
+    work-timeout: ${CONVERSATION_WORK_TIMEOUT:PT2M}

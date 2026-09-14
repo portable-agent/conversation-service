@@ -4,7 +4,7 @@ import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("conversation")
-public record ConversationProperties(Duration openTtl, int cleanupBatchSize) {
+public record ConversationProperties(Duration openTtl, int cleanupBatchSize, Duration workTimeout) {
 
     public ConversationProperties {
         if (openTtl == null || openTtl.isZero() || openTtl.isNegative()) {
@@ -12,6 +12,9 @@ public record ConversationProperties(Duration openTtl, int cleanupBatchSize) {
         }
         if (cleanupBatchSize < 1) {
             throw new IllegalArgumentException("conversation.cleanup-batch-size must be positive");
+        }
+        if (workTimeout == null || workTimeout.isZero() || workTimeout.isNegative()) {
+            throw new IllegalArgumentException("conversation.work-timeout must be positive");
         }
     }
 }

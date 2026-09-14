@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import dev.portableagent.conversation.config.ConversationProperties;
+import dev.portableagent.conversation.exception.ConversationNotOpen;
 import dev.portableagent.conversation.model.Conversation;
 import dev.portableagent.conversation.model.ConversationStatus;
 import dev.portableagent.conversation.model.Message;
@@ -47,7 +48,10 @@ class MessageServiceTest {
     void setUp() {
         var clock = Clock.fixed(NOW, ZoneOffset.UTC);
         service = new MessageService(
-                conversationRepository, messageRepository, clock, new ConversationProperties(OPEN_TTL, 100));
+                conversationRepository,
+                messageRepository,
+                clock,
+                new ConversationProperties(OPEN_TTL, 100, Duration.ofMinutes(2)));
     }
 
     @Test

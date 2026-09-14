@@ -3,6 +3,7 @@ package dev.portableagent.conversation.repository;
 import static dev.portableagent.conversation.db.tables.ConversationMessages.CONVERSATION_MESSAGES;
 
 import dev.portableagent.conversation.model.Message;
+import dev.portableagent.conversation.model.WorkStatus;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -39,6 +40,7 @@ public class MessageRepository {
                 .set(CONVERSATION_MESSAGES.TIME_ZONE, message.timeZone())
                 .set(CONVERSATION_MESSAGES.CREATED_AT, utc(message.createdAt()))
                 .set(CONVERSATION_MESSAGES.ERASED_AT, nullableUtc(message.erasedAt()))
+                .set(CONVERSATION_MESSAGES.WORK_UPDATED_AT, utc(message.createdAt()))
                 .onConflict(
                         CONVERSATION_MESSAGES.TENANT_ID,
                         CONVERSATION_MESSAGES.SUBJECT,
@@ -52,8 +54,14 @@ public class MessageRepository {
         db.update(CONVERSATION_MESSAGES)
                 .setNull(CONVERSATION_MESSAGES.MESSAGE_TEXT)
                 .set(CONVERSATION_MESSAGES.ERASED_AT, utc(now))
+                .set(CONVERSATION_MESSAGES.WORK_STATUS, WorkStatus.ERASED.name())
+                .setNull(CONVERSATION_MESSAGES.WORK_STARTED_AT)
+                .setNull(CONVERSATION_MESSAGES.WORK_TOKEN)
+                .setNull(CONVERSATION_MESSAGES.REPLY_TYPE)
+                .setNull(CONVERSATION_MESSAGES.REPLY_DATA)
+                .setNull(CONVERSATION_MESSAGES.ERROR_CODE)
+                .set(CONVERSATION_MESSAGES.WORK_UPDATED_AT, utc(now))
                 .where(CONVERSATION_MESSAGES.CONVERSATION_ID.eq(conversationId))
-                .and(CONVERSATION_MESSAGES.MESSAGE_TEXT.isNotNull())
                 .execute();
     }
 

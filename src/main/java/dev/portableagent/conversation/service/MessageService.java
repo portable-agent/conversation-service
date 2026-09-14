@@ -1,6 +1,7 @@
 package dev.portableagent.conversation.service;
 
 import dev.portableagent.conversation.config.ConversationProperties;
+import dev.portableagent.conversation.exception.ConversationNotOpen;
 import dev.portableagent.conversation.model.Conversation;
 import dev.portableagent.conversation.model.ConversationStatus;
 import dev.portableagent.conversation.model.Message;
