@@ -23,4 +23,8 @@
 Атомарный lease не даёт двум worker одновременно обрабатывать сообщение; зависшая работа доступна для
 повтора через две минуты.
 
-HTTP endpoint и интеграции с Agent Runtime и Action Service ещё не реализованы.
+Application-сценарий уже связывает хранение, lease, Agent, Action и построение карточки. Для
+`calendar.create_event` карточка строится из payload, сохранённого Action Service, а не из временного
+ответа Agent. Повтор готового сообщения возвращает сохранённый ответ без сетевых вызовов.
+
+HTTP endpoint и реальные HTTP-адаптеры Agent Runtime и Action Service ещё не реализованы.

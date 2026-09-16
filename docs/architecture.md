@@ -7,7 +7,8 @@ controller → service → repository → PostgreSQL
 ```
 
 - Controller переводит generated HTTP model в простой service command.
-- Service управляет одним сообщением, временем жизни диалога и транзакцией.
+- Service управляет одним сообщением и временем жизни диалога. Транзакции ограничены отдельными
+  операциями хранения и lease.
 - Repository использует generated jOOQ и только свою PostgreSQL-базу.
 - Agent client получает предложение, Action client создаёт действие.
 
@@ -39,4 +40,20 @@ Worker сначала атомарно переводит сообщение в 
 старый worker не может перезаписать результат после повторного захвата. Состояние `ERASED` конечное:
 оно не запускает внешние сервисы повторно.
 
-HTTP endpoint и clients появятся следующим пакетом после проверки этого слоя.
+## Сценарий сообщения
+
+```text
+store message -> claim lease -> Agent
+                              |-> question -> save TEXT
+                              `-> proposal -> Action -> card strategy -> save CONFIRMATION
+```
+
+`MessageFlowService` не открывает транзакцию. `MessageService.store`, `MessageWorkService.start`,
+`complete` и `fail` выполняются отдельными короткими транзакциями. Agent и Action представлены портами,
+поэтому generated HTTP types не протекают в application-логику.
+
+Карточки выбираются по `kind` через map стратегий. Сейчас разрешён только
+`calendar.create_event`. Карточка использует payload, возвращённый после сохранения Action Service, и
+передаёт `actionId` с `payloadHash` для последующего подтверждения.
+
+HTTP endpoint и реальные clients появятся следующим пакетом после проверки этого слоя.
