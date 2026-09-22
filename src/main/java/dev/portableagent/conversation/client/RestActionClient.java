@@ -17,24 +17,27 @@ public class RestActionClient implements ActionClient {
     public SavedAction create(Proposal proposal, String requestKey, String accessToken) {
         try {
             var request = new ProposeActionRequest(
-                    ProposeActionRequest.KindEnum.fromValue(proposal.kind()),
-                    ProposeActionRequest.ConnectorEnum.fromValue(proposal.connector()),
-                    CalendarPayloads.toAction(proposal.payload()),
-                    requestKey);
+                ProposeActionRequest.KindEnum.fromValue(proposal.kind()),
+                ProposeActionRequest.ConnectorEnum.fromValue(proposal.connector()),
+                CalendarPayloads.toAction(proposal.payload()),
+                requestKey);
             var response = client.post()
-                    .uri("/api/v1/actions")
-                    .headers(headers -> headers.setBearerAuth(accessToken))
-                    .body(request)
-                    .retrieve()
-                    .body(ActionResponse.class);
+                .uri("/api/v1/actions")
+                .headers(headers -> headers.setBearerAuth(accessToken))
+                .body(request)
+                .retrieve()
+                .body(ActionResponse.class);
             if (response == null
-                    || response.getId() == null
-                    || response.getPayloadHash() == null
-                    || response.getPayload() == null) {
+                || response.getId() == null
+                || response.getPayloadHash() == null
+                || response.getPayload() == null) {
                 throw new IllegalArgumentException("Action response is empty");
             }
             return new SavedAction(
-                    response.getId(), response.getPayloadHash(), CalendarPayloads.fromAction(response.getPayload()));
+                response.getId(),
+                response.getPayloadHash(),
+                CalendarPayloads.fromAction(response.getPayload())
+            );
         } catch (RestClientException | IllegalArgumentException exception) {
             throw new ActionUnavailable();
         }
