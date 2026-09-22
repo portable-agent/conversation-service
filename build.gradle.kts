@@ -1,3 +1,5 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 plugins {
     java
     jacoco
@@ -82,6 +84,8 @@ jooq {
 sourceSets.main {
     java.srcDir("build/generated-src/jooq/main")
     java.srcDir(layout.buildDirectory.dir("generated-src/openapi/src/main/java"))
+    java.srcDir(layout.buildDirectory.dir("generated-src/agent-openapi/src/main/java"))
+    java.srcDir(layout.buildDirectory.dir("generated-src/action-openapi/src/main/java"))
 }
 
 openApiGenerate {
@@ -113,6 +117,68 @@ openApiGenerate {
     )
 }
 
+fun clientModels(
+    taskName: String,
+    specPath: String,
+    output: String,
+    modelPackageName: String,
+) = tasks.register<GenerateTask>(taskName) {
+    generatorName.set("spring")
+    inputSpec.set(specPath)
+    outputDir.set(
+        layout.buildDirectory
+            .dir(output)
+            .get()
+            .asFile.absolutePath,
+    )
+    modelPackage.set(modelPackageName)
+    globalProperties.set(
+        mapOf(
+            "models" to "",
+            "modelDocs" to "false",
+            "modelTests" to "false",
+        ),
+    )
+    configOptions.set(
+        mapOf(
+            "annotationLibrary" to "none",
+            "documentationProvider" to "none",
+            "hideGenerationTimestamp" to "true",
+            "openApiNullable" to "false",
+            "performBeanValidation" to "true",
+            "useJackson3" to "true",
+            "useSpringBoot4" to "true",
+            "useSpringBuiltInValidation" to "true",
+        ),
+    )
+}
+
+val prepareAgentSpec =
+    tasks.register<Copy>("prepareAgentSpec") {
+        from("src/main/openapi/clients/agent-runtime-api.yaml")
+        into(layout.buildDirectory.dir("generated-specs"))
+        filter { line -> if (line.trim() == "const: true") "" else line }
+    }
+
+val agentApiGenerate =
+    clientModels(
+        "agentApiGenerate",
+        layout.buildDirectory
+            .file("generated-specs/agent-runtime-api.yaml")
+            .get()
+            .asFile.absolutePath,
+        "generated-src/agent-openapi",
+        "dev.portableagent.conversation.agent.api.model",
+    ).also { task -> task.configure { dependsOn(prepareAgentSpec) } }
+
+val actionApiGenerate =
+    clientModels(
+        "actionApiGenerate",
+        "$projectDir/src/main/openapi/clients/action-api.yaml",
+        "generated-src/action-openapi",
+        "dev.portableagent.conversation.action.api.model",
+    )
+
 spotless {
     java {
         target("src/**/*.java")
@@ -133,7 +199,7 @@ spotless {
 }
 
 tasks.compileJava {
-    dependsOn(tasks.jooqCodegen, tasks.openApiGenerate)
+    dependsOn(tasks.jooqCodegen, tasks.openApiGenerate, agentApiGenerate, actionApiGenerate)
 }
 
 tasks.withType<Test> {

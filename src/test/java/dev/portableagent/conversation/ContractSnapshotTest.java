@@ -26,4 +26,13 @@ class ContractSnapshotTest {
         assertThat(buildFile).doesNotContain("spring-boot-starter-data-jpa");
         assertThat(buildFile).doesNotContain("hibernate");
     }
+
+    @Test
+    void clientSnapshots_shouldStayPinnedAndKeepApprovalRule() throws IOException {
+        var agent = Files.readString(Path.of("src/main/openapi/clients/agent-runtime-api.yaml"));
+        var action = Files.readString(Path.of("src/main/openapi/clients/action-api.yaml"));
+
+        assertThat(agent).contains("version: 2.3.0", "/api/v1/proposals:", "const: true");
+        assertThat(action).contains("version: 2.3.0", "/api/v1/actions:");
+    }
 }

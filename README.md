@@ -19,9 +19,12 @@
 - application-сценарий `MessageFlowService` без сетевых вызовов внутри транзакции;
 - стратегия карточек и первая карточка подтверждения `calendar.create_event`;
 - безопасные порты Agent Runtime и Action Service, не привязанные к HTTP-моделям.
+- generated HTTP-модели Agent и Action из contracts `2.3.0`;
+- endpoint `POST /api/v1/messages` с JWT issuer и audience validation;
+- HTTP-адаптеры с настраиваемыми URL и timeout без hardcode окружения.
 
-HTTP endpoint и реальные HTTP-адаптеры Agent Runtime и Action Service ещё не подключены. Они будут
-следующим пакетом; бизнесовый сценарий пока не объявлен готовым.
+Conversation Service теперь принимает сообщение и проходит путь до сохранённого действия или вопроса
+для уточнения. Следующий пакет переключит Channel Gateway на этот endpoint и добавит межсервисный E2E.
 
 ## Проверка
 

@@ -27,4 +27,6 @@ Application-сценарий уже связывает хранение, lease, 
 `calendar.create_event` карточка строится из payload, сохранённого Action Service, а не из временного
 ответа Agent. Повтор готового сообщения возвращает сохранённый ответ без сетевых вызовов.
 
-HTTP endpoint и реальные HTTP-адаптеры Agent Runtime и Action Service ещё не реализованы.
+HTTP endpoint и реальные HTTP-адаптеры Agent Runtime и Action Service реализованы по закреплённым
+контрактам `2.3.0`. Bearer token пользователя передаётся обоим сервисам, а `tenant_id` и `sub` берутся
+только из проверенного JWT.

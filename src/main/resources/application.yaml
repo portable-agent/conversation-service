@@ -5,11 +5,10 @@ spring:
         url: ${DB_URL}
         username: ${DB_USER}
         password: ${DB_PASSWORD}
-    security:
-        oauth2:
-            resourceserver:
-                jwt:
-                    issuer-uri: ${OIDC_ISSUER}
+auth:
+    issuer: ${OIDC_ISSUER}
+    jwks-url: ${OIDC_JWKS_URL}
+    audience: ${OIDC_AUDIENCE:conversation-service}
 
 management:
     endpoints:
@@ -22,3 +21,9 @@ conversation:
     cleanup-delay: ${CONVERSATION_CLEANUP_DELAY:PT5M}
     cleanup-batch-size: ${CONVERSATION_CLEANUP_BATCH_SIZE:100}
     work-timeout: ${CONVERSATION_WORK_TIMEOUT:PT2M}
+
+remote:
+    agent-url: ${AGENT_URL:http://agent-runtime:8080}
+    action-url: ${ACTION_URL:http://action-service:8080}
+    connect-timeout: ${REMOTE_CONNECT_TIMEOUT:PT2S}
+    read-timeout: ${REMOTE_READ_TIMEOUT:PT10S}
