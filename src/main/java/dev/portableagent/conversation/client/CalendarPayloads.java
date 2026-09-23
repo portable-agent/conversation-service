@@ -1,6 +1,5 @@
 package dev.portableagent.conversation.client;
 
-import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -19,10 +18,7 @@ final class CalendarPayloads {
     static dev.portableagent.conversation.action.api.model.CalendarCreateEventPayload toAction(
             Map<String, Object> source) {
         var payload = new dev.portableagent.conversation.action.api.model.CalendarCreateEventPayload(
-                text(source, "title"),
-                OffsetDateTime.parse(text(source, "startAt")),
-                OffsetDateTime.parse(text(source, "endAt")),
-                text(source, "timeZone"));
+                text(source, "title"), text(source, "startAt"), text(source, "endAt"), text(source, "timeZone"));
         if (source.get("description") instanceof String description) {
             payload.setDescription(description);
         }
@@ -40,8 +36,7 @@ final class CalendarPayloads {
         return Map.copyOf(payload);
     }
 
-    private static LinkedHashMap<String, Object> base(
-            String title, OffsetDateTime startAt, OffsetDateTime endAt, String timeZone) {
+    private static LinkedHashMap<String, Object> base(String title, String startAt, String endAt, String timeZone) {
         if (title == null
                 || title.isBlank()
                 || startAt == null

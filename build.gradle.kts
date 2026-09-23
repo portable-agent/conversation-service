@@ -139,6 +139,7 @@ fun clientModels(
             "modelTests" to "false",
         ),
     )
+    typeMappings.set(mapOf("OffsetDateTime" to "String"))
     configOptions.set(
         mapOf(
             "annotationLibrary" to "none",

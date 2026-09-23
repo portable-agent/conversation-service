@@ -36,7 +36,10 @@ class RestAgentClientTest {
         var reply = client.ask(message(), "user-token");
 
         assertThat(reply.proposal().kind()).isEqualTo("calendar.create_event");
-        assertThat(reply.proposal().payload()).containsEntry("timeZone", "Europe/Moscow");
+        assertThat(reply.proposal().payload())
+                .containsEntry("startAt", "2030-09-08T12:00:00+03:00")
+                .containsEntry("endAt", "2030-09-08T12:30:00+03:00")
+                .containsEntry("timeZone", "Europe/Moscow");
         server.verify();
     }
 
