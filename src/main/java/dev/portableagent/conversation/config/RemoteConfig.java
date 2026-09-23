@@ -28,6 +28,7 @@ public class RemoteConfig {
     private RestClient client(RemoteProperties properties, java.net.URI url) {
         var httpClient = HttpClient.newBuilder()
                 .connectTimeout(properties.connectTimeout())
+                .version(HttpClient.Version.HTTP_1_1)
                 .build();
         var requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(properties.readTimeout());

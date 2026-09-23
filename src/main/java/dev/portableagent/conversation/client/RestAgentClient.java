@@ -4,9 +4,7 @@ import dev.portableagent.conversation.agent.api.model.ProposalRequest;
 import dev.portableagent.conversation.agent.api.model.ProposalResponse;
 import dev.portableagent.conversation.agent.api.model.UserContext;
 import dev.portableagent.conversation.model.Message;
-
 import java.util.Set;
-
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -22,15 +20,15 @@ public class RestAgentClient implements AgentClient {
     public AgentReply ask(Message message, String accessToken) {
         try {
             var context = new UserContext()
-                .locale(message.locale())
-                .timeZone(message.timeZone())
-                .availableConnectors(Set.of(UserContext.AvailableConnectorsEnum.FAKE_CALENDAR));
+                    .locale(message.locale())
+                    .timeZone(message.timeZone())
+                    .availableConnectors(Set.of(UserContext.AvailableConnectorsEnum.FAKE_CALENDAR));
             var response = client.post()
-                .uri("/api/v1/proposals")
-                .headers(headers -> headers.setBearerAuth(accessToken))
-                .body(new ProposalRequest(message.text(), context))
-                .retrieve()
-                .body(ProposalResponse.class);
+                    .uri("/api/v1/proposals")
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .body(new ProposalRequest(message.text(), context))
+                    .retrieve()
+                    .body(ProposalResponse.class);
             return map(response);
         } catch (RestClientException | IllegalArgumentException exception) {
             throw new AgentUnavailable();
@@ -52,8 +50,8 @@ public class RestAgentClient implements AgentClient {
             throw new IllegalArgumentException("Agent proposal is incomplete");
         }
         return AgentReply.proposal(new Proposal(
-            plan.getKind().getValue(),
-            plan.getConnector().getValue(),
-            CalendarPayloads.fromAgent(plan.getPayload())));
+                plan.getKind().getValue(),
+                plan.getConnector().getValue(),
+                CalendarPayloads.fromAgent(plan.getPayload())));
     }
 }

@@ -60,4 +60,21 @@ class CardServiceTest {
         var fields = (List<Map<String, Object>>) reply.data().get("fields");
         assertThat(fields.getLast()).containsEntry("value", "one@example.com, two@example.com");
     }
+
+    @Test
+    void make_whenAttendeesAreEmpty_shouldSkipOptionalField() {
+        var payload = Map.<String, Object>of(
+                "title", "Обсуждение проекта",
+                "startAt", "2030-09-08T12:00:00+03:00",
+                "endAt", "2030-09-08T12:30:00+03:00",
+                "timeZone", "Europe/Moscow",
+                "attendees", List.of());
+        var proposal = new Proposal("calendar.create_event", "fake-calendar", payload);
+        var action = new SavedAction(UUID.randomUUID(), "a".repeat(64), payload);
+        var service = new CardService(List.of(new CalendarCardMaker()));
+
+        var reply = service.make(proposal, action);
+
+        assertThat((List<?>) reply.data().get("fields")).hasSize(4);
+    }
 }

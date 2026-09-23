@@ -69,6 +69,9 @@ public class CalendarCardMaker implements CardMaker {
             String label,
             boolean sensitive) {
         var value = payload.get(name);
+        if (value instanceof Collection<?> values && values.isEmpty()) {
+            return;
+        }
         if (value != null) {
             fields.add(field(label, value, sensitive));
         }
