@@ -14,6 +14,7 @@ group = "dev.portableagent"
 version = "0.1.0-SNAPSHOT"
 
 extra["tomcat.version"] = "11.0.25"
+extra["jackson.version"] = "3.1.7"
 
 java {
     toolchain {
@@ -86,6 +87,7 @@ sourceSets.main {
     java.srcDir(layout.buildDirectory.dir("generated-src/openapi/src/main/java"))
     java.srcDir(layout.buildDirectory.dir("generated-src/agent-openapi/src/main/java"))
     java.srcDir(layout.buildDirectory.dir("generated-src/action-openapi/src/main/java"))
+    java.srcDir(layout.buildDirectory.dir("generated-src/connection-openapi/src/main/java"))
 }
 
 openApiGenerate {
@@ -180,6 +182,14 @@ val actionApiGenerate =
         "dev.portableagent.conversation.action.api.model",
     )
 
+val connectionApiGenerate =
+    clientModels(
+        "connectionApiGenerate",
+        "$projectDir/src/main/openapi/clients/connection-api.yaml",
+        "generated-src/connection-openapi",
+        "dev.portableagent.conversation.connection.api.model",
+    )
+
 spotless {
     java {
         target("src/**/*.java")
@@ -200,7 +210,7 @@ spotless {
 }
 
 tasks.compileJava {
-    dependsOn(tasks.jooqCodegen, tasks.openApiGenerate, agentApiGenerate, actionApiGenerate)
+    dependsOn(tasks.jooqCodegen, tasks.openApiGenerate, agentApiGenerate, actionApiGenerate, connectionApiGenerate)
 }
 
 tasks.withType<Test> {

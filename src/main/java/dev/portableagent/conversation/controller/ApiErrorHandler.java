@@ -3,6 +3,7 @@ package dev.portableagent.conversation.controller;
 import dev.portableagent.conversation.api.model.Problem;
 import dev.portableagent.conversation.client.ActionUnavailable;
 import dev.portableagent.conversation.client.AgentUnavailable;
+import dev.portableagent.conversation.client.ConnectionUnavailable;
 import dev.portableagent.conversation.exception.MessageBusy;
 import dev.portableagent.conversation.exception.MessageErased;
 import org.springframework.http.HttpStatus;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ApiErrorHandler {
 
-    @ExceptionHandler({AgentUnavailable.class, ActionUnavailable.class, MessageBusy.class})
+    @ExceptionHandler({AgentUnavailable.class, ActionUnavailable.class, ConnectionUnavailable.class, MessageBusy.class})
     ResponseEntity<Problem> unavailable() {
         return problem(HttpStatus.BAD_GATEWAY, "Dependency is temporarily unavailable");
     }

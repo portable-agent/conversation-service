@@ -11,6 +11,9 @@ import dev.portableagent.conversation.client.ActionUnavailable;
 import dev.portableagent.conversation.client.AgentClient;
 import dev.portableagent.conversation.client.AgentReply;
 import dev.portableagent.conversation.client.AgentUnavailable;
+import dev.portableagent.conversation.client.ConnectionClient;
+import dev.portableagent.conversation.client.ConnectionStatus;
+import dev.portableagent.conversation.client.ConnectionUnavailable;
 import dev.portableagent.conversation.client.Proposal;
 import dev.portableagent.conversation.client.SavedAction;
 import dev.portableagent.conversation.exception.MessageBusy;
@@ -19,6 +22,7 @@ import dev.portableagent.conversation.model.ReplyType;
 import dev.portableagent.conversation.model.SavedReply;
 import dev.portableagent.conversation.model.WorkDecision;
 import dev.portableagent.conversation.model.WorkError;
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -52,12 +56,79 @@ class MessageFlowServiceTest {
     @Mock
     private ActionClient actionClient;
 
+    @Mock
+    private ConnectionClient connectionClient;
+
     private MessageFlowService service;
 
     @BeforeEach
     void setUp() {
         var cards = new CardService(List.of(new CalendarCardMaker()));
-        service = new MessageFlowService(messageService, workService, agentClient, actionClient, cards);
+        var actionReplies = new ActionReplyService(actionClient, cards);
+        var connectionCards = new ConnectionCardService(connectionClient);
+        var proposals = new ProposalService(Map.of(
+                "fake-calendar", new FakeCalendarHandler(actionReplies),
+                "google-calendar", new GoogleCalendarHandler(connectionClient, actionReplies, connectionCards)));
+        var plainViewer = new PlainReplyViewer();
+        var connectionViewer = new ConnectionReplyViewer(connectionCards);
+        var views = new ReplyViewService(Map.of(
+                ReplyType.TEXT, plainViewer,
+                ReplyType.CONFIRMATION, plainViewer,
+                ReplyType.CONNECTION, connectionViewer));
+        service = new MessageFlowService(messageService, workService, agentClient, proposals, views);
+    }
+
+    @Test
+    void handle_whenGoogleConnectionIsMissing_shouldStoreNoUrlAndShowFreshUrl() {
+        var command = command();
+        var message = message();
+        var proposal = new Proposal("calendar.create_event", "google-calendar", payload());
+        when(messageService.store(command.storeCommand())).thenReturn(message);
+        when(workService.start(MESSAGE_ID)).thenReturn(WorkDecision.started(WORK_TOKEN));
+        when(agentClient.ask(message, ACCESS_TOKEN)).thenReturn(AgentReply.proposal(proposal));
+        when(connectionClient.status("google-calendar", ACCESS_TOKEN)).thenReturn(ConnectionStatus.MISSING);
+        when(connectionClient.start("google-calendar", ACCESS_TOKEN))
+                .thenReturn(URI.create("https://accounts.google.com/new-state"));
+
+        var result = service.handle(command);
+
+        var saved = org.mockito.ArgumentCaptor.forClass(SavedReply.class);
+        verify(workService)
+                .complete(
+                        org.mockito.ArgumentMatchers.eq(MESSAGE_ID),
+                        org.mockito.ArgumentMatchers.eq(WORK_TOKEN),
+                        saved.capture());
+        assertThat(saved.getValue().type()).isEqualTo(ReplyType.CONNECTION);
+        assertThat(saved.getValue().data()).doesNotContainKeys("button", "url", "state");
+        assertThat(result.reply().data().get("button"))
+                .isEqualTo(Map.of("label", "Подключить", "url", "https://accounts.google.com/new-state"));
+        verify(actionClient, never())
+                .create(
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void handle_whenStoredConnectionReplyIsRepeated_shouldRequestNewUrl() {
+        var command = command();
+        var message = message();
+        var saved = new ConnectionCardService(connectionClient).saved("google-calendar");
+        when(messageService.store(command.storeCommand())).thenReturn(message);
+        when(workService.start(MESSAGE_ID)).thenReturn(WorkDecision.ready(saved));
+        when(connectionClient.start("google-calendar", ACCESS_TOKEN))
+                .thenReturn(URI.create("https://accounts.google.com/fresh-state"));
+
+        var result = service.handle(command);
+
+        assertThat(result.reply().data().get("button"))
+                .isEqualTo(Map.of("label", "Подключить", "url", "https://accounts.google.com/fresh-state"));
+        verify(agentClient, never()).ask(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(workService, never())
+                .complete(
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -175,15 +246,28 @@ class MessageFlowServiceTest {
     }
 
     @Test
+    void handle_whenConnectionServiceIsUnavailable_shouldSaveSafeError() {
+        var command = command();
+        var message = message();
+        var proposal = new Proposal("calendar.create_event", "google-calendar", payload());
+        when(messageService.store(command.storeCommand())).thenReturn(message);
+        when(workService.start(MESSAGE_ID)).thenReturn(WorkDecision.started(WORK_TOKEN));
+        when(agentClient.ask(message, ACCESS_TOKEN)).thenReturn(AgentReply.proposal(proposal));
+        when(connectionClient.status("google-calendar", ACCESS_TOKEN)).thenThrow(new ConnectionUnavailable());
+
+        assertThatThrownBy(() -> service.handle(command)).isInstanceOf(ConnectionUnavailable.class);
+
+        verify(workService).fail(MESSAGE_ID, WORK_TOKEN, WorkError.CONNECTION_UNAVAILABLE);
+    }
+
+    @Test
     void handle_whenReplyCannotBeBuilt_shouldSaveUnexpectedError() {
         var command = command();
         var message = message();
         var unknown = new Proposal("unknown.action", "fake", Map.of("value", "private"));
-        var action = new SavedAction(ACTION_ID, PAYLOAD_HASH, Map.of("value", "private"));
         when(messageService.store(command.storeCommand())).thenReturn(message);
         when(workService.start(MESSAGE_ID)).thenReturn(WorkDecision.started(WORK_TOKEN));
         when(agentClient.ask(message, ACCESS_TOKEN)).thenReturn(AgentReply.proposal(unknown));
-        when(actionClient.create(unknown, message.requestKey(), ACCESS_TOKEN)).thenReturn(action);
 
         assertThatThrownBy(() -> service.handle(command)).isInstanceOf(IllegalArgumentException.class);
 

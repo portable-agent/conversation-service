@@ -72,6 +72,46 @@ class MessageControllerTest {
     }
 
     @Test
+    void createMessage_whenConnectionIsRequired_shouldReturnCommonWidget() throws Exception {
+        var messageId = UUID.randomUUID();
+        var conversationId = UUID.randomUUID();
+        when(service.handle(any()))
+                .thenReturn(new MessageResult(
+                        messageId,
+                        conversationId,
+                        new SavedReply(
+                                ReplyType.CONNECTION,
+                                Map.of(
+                                        "schemaVersion", 1,
+                                        "widget", "connection",
+                                        "provider", "google-calendar",
+                                        "title", "Подключить Google Calendar",
+                                        "text", "Подключите календарь и повторите команду.",
+                                        "button",
+                                                Map.of(
+                                                        "label", "Подключить",
+                                                        "url", "https://accounts.google.com/oauth")))));
+
+        mvc.perform(post("/api/v1/messages")
+                        .with(jwt().jwt(token -> token.tokenValue("user-token")
+                                .subject("user-42")
+                                .claim("tenant_id", UUID.randomUUID().toString())))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "requestKey": "telegram:101",
+                                  "text": "Создай встречу",
+                                  "context": {"locale": "ru-RU", "timeZone": "Europe/Moscow"}
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reply.type").value("connection"))
+                .andExpect(jsonPath("$.reply.card.provider").value("google-calendar"))
+                .andExpect(jsonPath("$.reply.card.button.label").value("Подключить"))
+                .andExpect(jsonPath("$.reply.card.button.url").value("https://accounts.google.com/oauth"));
+    }
+
+    @Test
     void createMessage_withoutJwt_shouldReturnUnauthorized() throws Exception {
         mvc.perform(post("/api/v1/messages")
                         .contentType(MediaType.APPLICATION_JSON)

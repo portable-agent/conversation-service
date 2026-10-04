@@ -5,16 +5,15 @@ import dev.portableagent.conversation.agent.api.model.ProposalResponse;
 import dev.portableagent.conversation.agent.api.model.UserContext;
 import dev.portableagent.conversation.model.Message;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+@RequiredArgsConstructor
 public class RestAgentClient implements AgentClient {
 
     private final RestClient client;
-
-    public RestAgentClient(RestClient client) {
-        this.client = client;
-    }
+    private final Set<UserContext.AvailableConnectorsEnum> availableConnectors;
 
     @Override
     public AgentReply ask(Message message, String accessToken) {
@@ -22,7 +21,7 @@ public class RestAgentClient implements AgentClient {
             var context = new UserContext()
                     .locale(message.locale())
                     .timeZone(message.timeZone())
-                    .availableConnectors(Set.of(UserContext.AvailableConnectorsEnum.FAKE_CALENDAR));
+                    .availableConnectors(availableConnectors);
             var response = client.post()
                     .uri("/api/v1/proposals")
                     .headers(headers -> headers.setBearerAuth(accessToken))

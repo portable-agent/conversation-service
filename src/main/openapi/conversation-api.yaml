@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
     title: Portable Agent Conversation API
-    version: 2.3.0
+    version: 4.0.0
     description: Внутренний API состояния диалога и оркестрации предложения действия.
     license:
         name: Apache-2.0
@@ -40,7 +40,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Problem"
                 "502":
-                    description: Agent Runtime или Action Service временно недоступен
+                    description: Agent Runtime, Action Service или Connection Service временно недоступен
                     content:
                         application/json:
                             schema:
@@ -101,11 +101,13 @@ components:
                     oneOf:
                         - $ref: "#/components/schemas/TextReply"
                         - $ref: "#/components/schemas/ConfirmationReply"
+                        - $ref: "#/components/schemas/ConnectionReply"
                     discriminator:
                         propertyName: type
                         mapping:
                             text: "#/components/schemas/TextReply"
                             confirmation: "#/components/schemas/ConfirmationReply"
+                            connection: "#/components/schemas/ConnectionReply"
         TextReply:
             type: object
             additionalProperties: false
@@ -126,6 +128,37 @@ components:
                     type: string
                 card:
                     $ref: "#/components/schemas/ActionConfirmationWidget"
+        ConnectionReply:
+            type: object
+            additionalProperties: false
+            required: [type, card]
+            properties:
+                type:
+                    type: string
+                card:
+                    $ref: "#/components/schemas/ConnectionWidget"
+        ConnectionWidget:
+            type: object
+            additionalProperties: false
+            required: [schemaVersion, widget, provider, title, text, button]
+            properties:
+                schemaVersion: { type: integer, enum: [1] }
+                widget: { type: string, enum: [connection] }
+                provider: { type: string, enum: [google-calendar] }
+                title: { type: string, minLength: 1, maxLength: 120 }
+                text: { type: string, minLength: 1, maxLength: 1000 }
+                button:
+                    $ref: "#/components/schemas/ConnectionWidgetButton"
+        ConnectionWidgetButton:
+            type: object
+            additionalProperties: false
+            required: [label, url]
+            properties:
+                label: { type: string, minLength: 1, maxLength: 80 }
+                url:
+                    type: string
+                    format: uri
+                    pattern: "^https://"
         ActionConfirmationWidget:
             type: object
             additionalProperties: false
