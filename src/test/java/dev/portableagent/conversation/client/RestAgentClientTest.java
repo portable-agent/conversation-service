@@ -2,12 +2,14 @@ package dev.portableagent.conversation.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import dev.portableagent.conversation.model.Message;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,13 +26,22 @@ class RestAgentClientTest {
     void setUp() {
         var builder = RestClient.builder().baseUrl("http://agent");
         server = MockRestServiceServer.bindTo(builder).build();
-        client = new RestAgentClient(builder.build());
+        client = new RestAgentClient(
+                builder.build(),
+                Set.of(
+                        dev.portableagent.conversation.agent.api.model.UserContext.AvailableConnectorsEnum
+                                .FAKE_CALENDAR,
+                        dev.portableagent.conversation.agent.api.model.UserContext.AvailableConnectorsEnum
+                                .GOOGLE_CALENDAR));
     }
 
     @Test
     void ask_whenProposalIsSafe_shouldMapIt() {
         server.expect(requestTo("http://agent/api/v1/proposals"))
                 .andExpect(header("Authorization", "Bearer user-token"))
+                .andExpect(content().json("""
+                        {"context":{"availableConnectors":["fake-calendar","google-calendar"]}}
+                        """, false))
                 .andRespond(withSuccess(proposal(true), MediaType.APPLICATION_JSON));
 
         var reply = client.ask(message(), "user-token");

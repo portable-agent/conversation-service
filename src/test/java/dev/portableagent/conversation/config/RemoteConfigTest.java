@@ -9,6 +9,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,8 @@ class RemoteConfigTest {
 
         try {
             var baseUrl = URI.create("http://127.0.0.1:" + server.getAddress().getPort());
-            var properties = new RemoteProperties(baseUrl, baseUrl, Duration.ofSeconds(1), Duration.ofSeconds(1));
+            var properties = new RemoteProperties(
+                    baseUrl, baseUrl, baseUrl, Set.of("fake-calendar"), Duration.ofSeconds(1), Duration.ofSeconds(1));
             var client = new RemoteConfig().agentClient(properties);
 
             var reply = client.ask(message(), "user-token");

@@ -3,14 +3,15 @@
 ```text
 controller → service → repository → PostgreSQL
                  ↓
-          Agent и Action clients
+      Agent, Action и Connection clients
 ```
 
 - Controller переводит generated HTTP model в простой service command.
 - Service управляет одним сообщением и временем жизни диалога. Транзакции ограничены отдельными
   операциями хранения и lease.
 - Repository использует generated jOOQ и только свою PostgreSQL-базу.
-- Agent client получает предложение, Action client создаёт действие.
+- Agent client получает предложение, Action client создаёт действие, Connection client проверяет
+  внешний аккаунт и начинает OAuth.
 
 ## Хранение
 
@@ -45,16 +46,23 @@ Worker сначала атомарно переводит сообщение в 
 ```text
 store message -> claim lease -> Agent
                               |-> question -> save TEXT
-                              `-> proposal -> Action -> card strategy -> save CONFIRMATION
+                              `-> proposal -> connector strategy
+                                              |-> connected -> Action -> save CONFIRMATION
+                                              `-> missing -> save CONNECTION without URL
+return response -> reply viewer -> add fresh OAuth URL only for CONNECTION
 ```
 
 `MessageFlowService` не открывает транзакцию. `MessageService.store`, `MessageWorkService.start`,
 `complete` и `fail` выполняются отдельными короткими транзакциями. Agent и Action представлены портами,
 поэтому generated HTTP types не протекают в application-логику.
 
-Карточки выбираются по `kind` через map стратегий. Сейчас разрешён только
-`calendar.create_event`. Карточка использует payload, возвращённый после сохранения Action Service, и
-передаёт `actionId` с `payloadHash` для последующего подтверждения.
+Карточки выбираются по `kind` через map стратегий, а обработка предложения — по `connector`.
+`fake-calendar` сразу создаёт Action. `google-calendar` сначала требует ровно одно активное
+подключение. При его отсутствии в БД сохраняется только provider и безопасный текст. Map viewer при
+каждом HTTP-ответе получает новую OAuth URL; URL, state и токены не попадают в PostgreSQL.
+
+Если подключений несколько, сервис не выбирает одно молча и возвращает понятный текст. После
+успешного OAuth MVP просит повторить исходную команду.
 
 ## HTTP-граница
 
@@ -62,9 +70,10 @@ store message -> claim lease -> Agent
 `tenant_id`, `sub` и исходный bearer token берутся из JWT, поэтому канал не может подменить владельца
 данными request body. Проверяются подпись, issuer и audience `conversation-service`.
 
-`RestAgentClient` и `RestActionClient` используют generated transport-модели contracts `2.3.0`, но
-переводят их во внутренние `Proposal` и `SavedAction`. URL и timeout задаются environment. Ошибка сети
-или некорректный ответ превращаются в безопасный код состояния без сохранения текста exception.
+`RestAgentClient`, `RestActionClient` и `RestConnectionClient` используют generated transport-модели
+contracts `3.1.0`, но переводят их во внутренние модели. URL, список доступных connector и timeout
+задаются environment. Ошибка сети или некорректный ответ превращаются в безопасный код состояния без
+сохранения текста exception.
 
 OpenAPI Generator 7.24 некорректно генерирует Java для boolean `const`. Поэтому только временная
 codegen-копия Agent API в `build/` теряет это ограничение, а адаптер обязательно проверяет

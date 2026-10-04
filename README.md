@@ -7,7 +7,7 @@
 
 - Spring Boot и обычные MVC-пакеты;
 - jOOQ без JPA и Hibernate;
-- generated HTTP interface из contracts `2.3.0`;
+- generated HTTP interface из contracts `3.1.0`;
 - OAuth2 Resource Server;
 - Flyway и PostgreSQL dependencies;
 - TDD, Spotless, Testcontainers и общий CI/CD.
@@ -19,12 +19,14 @@
 - application-сценарий `MessageFlowService` без сетевых вызовов внутри транзакции;
 - стратегия карточек и первая карточка подтверждения `calendar.create_event`;
 - безопасные порты Agent Runtime и Action Service, не привязанные к HTTP-моделям.
-- generated HTTP-модели Agent и Action из contracts `2.3.0`;
+- generated HTTP-модели Agent, Action и Connection из contracts `3.1.0`;
 - endpoint `POST /api/v1/messages` с JWT issuer и audience validation;
 - HTTP-адаптеры с настраиваемыми URL и timeout без hardcode окружения.
+- проверка Google Calendar подключения до создания Action;
+- общий `connection` widget с новой OAuth-ссылкой для каждого HTTP-ответа.
 
-Conversation Service теперь принимает сообщение и проходит путь до сохранённого действия или вопроса
-для уточнения. Следующий пакет переключит Channel Gateway на этот endpoint и добавит межсервисный E2E.
+Conversation Service принимает сообщение и проходит путь до вопроса, виджета подключения либо
+сохранённого действия. Одноразовая OAuth-ссылка не хранится в PostgreSQL.
 
 ## Проверка
 

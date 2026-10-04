@@ -4,15 +4,18 @@ import dev.portableagent.conversation.api.model.ActionConfirmationWidget;
 import dev.portableagent.conversation.api.model.ActionConfirmationWidgetActionsInner;
 import dev.portableagent.conversation.api.model.ActionConfirmationWidgetFieldsInner;
 import dev.portableagent.conversation.api.model.ConfirmationReply;
+import dev.portableagent.conversation.api.model.ConnectionReply;
+import dev.portableagent.conversation.api.model.ConnectionWidget;
+import dev.portableagent.conversation.api.model.ConnectionWidgetButton;
 import dev.portableagent.conversation.api.model.MessageRequest;
 import dev.portableagent.conversation.api.model.MessageResponse;
 import dev.portableagent.conversation.api.model.MessageResponseReply;
 import dev.portableagent.conversation.api.model.TextReply;
-import dev.portableagent.conversation.model.ReplyType;
 import dev.portableagent.conversation.model.SavedReply;
 import dev.portableagent.conversation.service.HandleMessageCommand;
 import dev.portableagent.conversation.service.MessageResult;
 import dev.portableagent.conversation.service.StoreMessageCommand;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,10 +43,14 @@ final class MessageApiMapper {
     }
 
     private static MessageResponseReply reply(SavedReply reply) {
-        if (reply.type() == ReplyType.TEXT) {
-            return new TextReply("text", text(reply.data(), "text"));
-        }
-        var data = reply.data();
+        return switch (reply.type()) {
+            case TEXT -> new TextReply("text", text(reply.data(), "text"));
+            case CONFIRMATION -> confirmation(reply.data());
+            case CONNECTION -> connection(reply.data());
+        };
+    }
+
+    private static ConfirmationReply confirmation(Map<String, Object> data) {
         var card = new ActionConfirmationWidget(
                 ActionConfirmationWidget.SchemaVersionEnum.fromValue(number(data, "schemaVersion")),
                 ActionConfirmationWidget.WidgetEnum.fromValue(text(data, "widget")),
@@ -53,6 +60,18 @@ final class MessageApiMapper {
                 fields(data),
                 actions(data));
         return new ConfirmationReply("confirmation", card);
+    }
+
+    private static ConnectionReply connection(Map<String, Object> data) {
+        var button = map(data.get("button"));
+        var card = new ConnectionWidget(
+                ConnectionWidget.SchemaVersionEnum.fromValue(number(data, "schemaVersion")),
+                ConnectionWidget.WidgetEnum.fromValue(text(data, "widget")),
+                ConnectionWidget.ProviderEnum.fromValue(text(data, "provider")),
+                text(data, "title"),
+                text(data, "text"),
+                new ConnectionWidgetButton(text(button, "label"), URI.create(text(button, "url"))));
+        return new ConnectionReply("connection", card);
     }
 
     private static List<ActionConfirmationWidgetFieldsInner> fields(Map<String, Object> data) {

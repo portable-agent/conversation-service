@@ -1,9 +1,9 @@
 # Снимок контракта
 
 - Источник: `portable-agent/contracts`
-- Release: `v2.3.0`
-- Исходные API: `openapi/conversation-api.yaml`, `openapi/agent-runtime-api.yaml` и
-  `openapi/action-api.yaml`
+- Target release: `v3.1.0` from contracts PR #21
+- Исходные API: `openapi/conversation-api.yaml`, `openapi/agent-runtime-api.yaml`,
+  `openapi/action-api.yaml` и `openapi/connection-api.yaml`
 
 Файл собран в self-contained вид для OpenAPI Generator. Его нельзя менять вручную. Новая версия
 сначала выпускается в `contracts`, затем обновляется отдельным pull request.

@@ -25,5 +25,7 @@ conversation:
 remote:
     agent-url: ${AGENT_URL:http://agent-runtime:8080}
     action-url: ${ACTION_URL:http://action-service:8080}
+    connection-url: ${CONNECTION_URL:http://connection-service:8080}
+    available-connectors: ${AVAILABLE_CONNECTORS:fake-calendar}
     connect-timeout: ${REMOTE_CONNECT_TIMEOUT:PT2S}
     read-timeout: ${REMOTE_READ_TIMEOUT:PT10S}

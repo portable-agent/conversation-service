@@ -13,7 +13,7 @@ class ContractSnapshotTest {
     void contractSnapshot_hasExpectedVersionAndMessagePath() throws IOException {
         var contract = Files.readString(Path.of("src/main/openapi/conversation-api.yaml"));
 
-        assertThat(contract).contains("version: 2.3.0");
+        assertThat(contract).contains("version: 3.1.0");
         assertThat(contract).contains("/api/v1/messages:");
         assertThat(contract).contains("operationId: createConversationMessage");
     }
@@ -31,8 +31,11 @@ class ContractSnapshotTest {
     void clientSnapshots_shouldStayPinnedAndKeepApprovalRule() throws IOException {
         var agent = Files.readString(Path.of("src/main/openapi/clients/agent-runtime-api.yaml"));
         var action = Files.readString(Path.of("src/main/openapi/clients/action-api.yaml"));
+        var connection = Files.readString(Path.of("src/main/openapi/clients/connection-api.yaml"));
 
-        assertThat(agent).contains("version: 2.3.0", "/api/v1/proposals:", "const: true");
-        assertThat(action).contains("version: 2.3.0", "/api/v1/actions:");
+        assertThat(agent).contains("version: 3.1.0", "/api/v1/proposals:", "const: true", "google-calendar");
+        assertThat(action).contains("version: 3.1.0", "/api/v1/actions:", "google-calendar");
+        assertThat(connection)
+                .contains("version: 3.1.0", "/api/v1/connections:", "/api/v1/connections/start:", "google-calendar");
     }
 }
