@@ -71,7 +71,7 @@ return response -> reply viewer -> add fresh OAuth URL only for CONNECTION
 данными request body. Проверяются подпись, issuer и audience `conversation-service`.
 
 `RestAgentClient`, `RestActionClient` и `RestConnectionClient` используют generated transport-модели
-contracts `3.1.0`, но переводят их во внутренние модели. URL, список доступных connector и timeout
+contracts `4.0.0`, но переводят их во внутренние модели. URL, список доступных connector и timeout
 задаются environment. Ошибка сети или некорректный ответ превращаются в безопасный код состояния без
 сохранения текста exception.
 

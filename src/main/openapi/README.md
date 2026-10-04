@@ -1,7 +1,7 @@
 # Снимок контракта
 
 - Источник: `portable-agent/contracts`
-- Target release: `v3.1.0` from contracts PR #21
+- Target release: `v4.0.0` from contracts PR #21
 - Исходные API: `openapi/conversation-api.yaml`, `openapi/agent-runtime-api.yaml`,
   `openapi/action-api.yaml` и `openapi/connection-api.yaml`
 

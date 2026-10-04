@@ -13,7 +13,7 @@ class ContractSnapshotTest {
     void contractSnapshot_hasExpectedVersionAndMessagePath() throws IOException {
         var contract = Files.readString(Path.of("src/main/openapi/conversation-api.yaml"));
 
-        assertThat(contract).contains("version: 3.1.0");
+        assertThat(contract).contains("version: 4.0.0");
         assertThat(contract).contains("/api/v1/messages:");
         assertThat(contract).contains("operationId: createConversationMessage");
     }
@@ -33,9 +33,9 @@ class ContractSnapshotTest {
         var action = Files.readString(Path.of("src/main/openapi/clients/action-api.yaml"));
         var connection = Files.readString(Path.of("src/main/openapi/clients/connection-api.yaml"));
 
-        assertThat(agent).contains("version: 3.1.0", "/api/v1/proposals:", "const: true", "google-calendar");
-        assertThat(action).contains("version: 3.1.0", "/api/v1/actions:", "google-calendar");
+        assertThat(agent).contains("version: 4.0.0", "/api/v1/proposals:", "const: true", "google-calendar");
+        assertThat(action).contains("version: 4.0.0", "/api/v1/actions:", "google-calendar");
         assertThat(connection)
-                .contains("version: 3.1.0", "/api/v1/connections:", "/api/v1/connections/start:", "google-calendar");
+                .contains("version: 4.0.0", "/api/v1/connections:", "/api/v1/connections/start:", "google-calendar");
     }
 }
