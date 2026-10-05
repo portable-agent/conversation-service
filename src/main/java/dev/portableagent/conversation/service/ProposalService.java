@@ -5,9 +5,7 @@ import dev.portableagent.conversation.model.Message;
 import dev.portableagent.conversation.model.SavedReply;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-@Service
 @RequiredArgsConstructor
 public class ProposalService {
 

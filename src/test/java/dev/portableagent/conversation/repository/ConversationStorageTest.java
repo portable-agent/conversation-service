@@ -146,6 +146,24 @@ class ConversationStorageTest {
     }
 
     @Test
+    void saveReady_whenReplyRequestsConnection_shouldStoreReply() {
+        var conversation = conversation(NOW.plusSeconds(600));
+        var message = message(conversation, "connection-work", "Создай встречу");
+        new ConversationRepository(db).create(conversation);
+        new MessageRepository(db).saveIfMissing(message);
+        var repository = workRepository(db);
+        var token =
+                repository.tryStart(message.id(), NOW, NOW.minusSeconds(120)).orElseThrow();
+        var reply = new SavedReply(
+                ReplyType.CONNECTION,
+                Map.of("provider", "google-calendar", "widget", "connection", "schemaVersion", 1));
+
+        repository.saveReady(message.id(), token, reply, NOW.plusSeconds(1));
+
+        assertThat(repository.findById(message.id()).orElseThrow().reply()).isEqualTo(reply);
+    }
+
+    @Test
     void tryStart_whenTwoWorkersRunTogether_shouldClaimOnce() throws Exception {
         var conversation = conversation(NOW.plusSeconds(600));
         var message = message(conversation, "parallel-work", "Создай встречу");
