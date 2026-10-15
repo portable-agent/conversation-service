@@ -3,7 +3,7 @@ import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 plugins {
     java
     jacoco
-    id("org.jooq.jooq-codegen-gradle") version "3.21.7"
+    id("org.jooq.jooq-codegen-gradle") version "3.21.9"
     id("org.openapi.generator") version "7.24.0"
     id("com.diffplug.spotless") version "8.10.1"
     id("org.springframework.boot") version "4.1.1"
@@ -39,7 +39,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    jooqCodegen("org.jooq:jooq-meta-extensions:3.21.7")
+    jooqCodegen("org.jooq:jooq-meta-extensions:3.21.9")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
