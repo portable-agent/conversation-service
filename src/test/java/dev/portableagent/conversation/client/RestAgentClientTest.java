@@ -62,6 +62,17 @@ class RestAgentClientTest {
         assertThatThrownBy(() -> client.ask(message(), "user-token")).isInstanceOf(AgentUnavailable.class);
     }
 
+    @Test
+    void ask_whenGoogleCalendarProposalIsReturned_shouldMapIt() {
+        server.expect(requestTo("http://agent/api/v1/proposals"))
+                .andRespond(withSuccess(googleCalendarProposal(), MediaType.APPLICATION_JSON));
+
+        var reply = client.ask(message(), "user-token");
+
+        assertThat(reply.proposal().connector()).isEqualTo("google-calendar");
+        assertThat(reply.proposal().payload()).containsEntry("title", "Portable Agent N2N");
+    }
+
     private Message message() {
         return new Message(
                 UUID.randomUUID(),
@@ -96,5 +107,27 @@ class RestAgentClientTest {
                   "clarification": null
                 }
                 """.formatted(requiresApproval);
+    }
+
+    private String googleCalendarProposal() {
+        return """
+                {
+                  "proposal": {
+                    "proposalId": "062c2daf-28f8-4852-8737-939556acce09",
+                    "kind": "calendar.create_event",
+                    "connector": "google-calendar",
+                    "payload": {
+                      "title": "Portable Agent N2N",
+                      "startAt": "2026-10-07T15:00:00+03:00",
+                      "endAt": "2026-10-07T15:30:00+03:00",
+                      "timeZone": "Europe/Moscow"
+                    },
+                    "explanation": "Создать событие календаря по команде пользователя",
+                    "risk": "MEDIUM",
+                    "requiresApproval": true
+                  },
+                  "clarification": null
+                }
+                """;
     }
 }

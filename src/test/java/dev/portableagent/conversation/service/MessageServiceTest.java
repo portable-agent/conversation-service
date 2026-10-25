@@ -100,6 +100,32 @@ class MessageServiceTest {
     }
 
     @Test
+    void store_whenOwnedConversationIsClosed_opensNewConversation() {
+        var command = command(CONVERSATION_ID);
+        when(messageRepository.findByRequest(TENANT_ID, SUBJECT, REQUEST_KEY)).thenReturn(Optional.empty());
+        when(conversationRepository.findOpen(TENANT_ID, SUBJECT, CONVERSATION_ID, NOW))
+                .thenReturn(Optional.empty());
+        when(conversationRepository.findOwned(TENANT_ID, SUBJECT, CONVERSATION_ID))
+                .thenReturn(Optional.of(new Conversation(
+                        CONVERSATION_ID,
+                        TENANT_ID,
+                        SUBJECT,
+                        ConversationStatus.CLOSED,
+                        NOW.minusSeconds(1),
+                        NOW.minus(OPEN_TTL),
+                        NOW.minusSeconds(1))));
+        when(messageRepository.saveIfMissing(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(true);
+
+        var result = service.store(command);
+
+        var opened = ArgumentCaptor.forClass(Conversation.class);
+        verify(conversationRepository).create(opened.capture());
+        assertThat(opened.getValue().id()).isNotEqualTo(CONVERSATION_ID);
+        assertThat(result.conversationId()).isEqualTo(opened.getValue().id());
+    }
+
+    @Test
     void store_whenSameNewRequestWinsInAnotherThread_removesEmptyConversation() {
         var saved = message(CONVERSATION_ID);
         var command = command(null);

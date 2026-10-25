@@ -31,8 +31,8 @@ public class MessageService {
         }
 
         var now = clock.instant();
-        boolean newConversation = command.conversationId() == null;
-        var conversation = newConversation ? openConversation(command, now) : findOpen(command, now);
+        var conversation = findOrOpen(command, now);
+        boolean newConversation = !conversation.id().equals(command.conversationId());
         var message = new Message(
                 UUID.randomUUID(),
                 conversation.id(),
@@ -95,5 +95,25 @@ public class MessageService {
         return conversationRepository
                 .findOpen(command.tenantId(), command.subject(), command.conversationId(), now)
                 .orElseThrow(() -> new ConversationNotOpen(command.conversationId()));
+    }
+
+    private Conversation findOrOpen(StoreMessageCommand command, Instant now) {
+        if (command.conversationId() == null) {
+            return openConversation(command, now);
+        }
+
+        var open =
+                conversationRepository.findOpen(command.tenantId(), command.subject(), command.conversationId(), now);
+        if (open.isPresent()) {
+            return open.get();
+        }
+
+        if (conversationRepository
+                .findOwned(command.tenantId(), command.subject(), command.conversationId())
+                .isPresent()) {
+            return openConversation(command, now);
+        }
+
+        throw new ConversationNotOpen(command.conversationId());
     }
 }
