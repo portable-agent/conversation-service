@@ -91,12 +91,6 @@ public class MessageService {
         return conversation;
     }
 
-    private Conversation findOpen(StoreMessageCommand command, Instant now) {
-        return conversationRepository
-                .findOpen(command.tenantId(), command.subject(), command.conversationId(), now)
-                .orElseThrow(() -> new ConversationNotOpen(command.conversationId()));
-    }
-
     private Conversation findOrOpen(StoreMessageCommand command, Instant now) {
         if (command.conversationId() == null) {
             return openConversation(command, now);
