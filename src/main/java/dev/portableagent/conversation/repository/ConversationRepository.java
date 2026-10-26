@@ -43,6 +43,14 @@ public class ConversationRepository {
                 .fetchOptional(this::toConversation);
     }
 
+    public Optional<Conversation> findOwned(UUID tenantId, String subject, UUID conversationId) {
+        return db.selectFrom(CONVERSATIONS)
+                .where(CONVERSATIONS.ID.eq(conversationId))
+                .and(CONVERSATIONS.TENANT_ID.eq(tenantId))
+                .and(CONVERSATIONS.SUBJECT.eq(subject))
+                .fetchOptional(this::toConversation);
+    }
+
     public void close(UUID conversationId, Instant now) {
         db.update(CONVERSATIONS)
                 .set(CONVERSATIONS.STATUS, ConversationStatus.CLOSED.name())
